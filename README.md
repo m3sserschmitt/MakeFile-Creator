@@ -1,4 +1,4 @@
-# MakeFile Creator
+# MakeFile-Creator
 
 MakeFile-Creator is an utility for managing makefiles in C/C++ projects.
 
