@@ -1,6 +1,6 @@
 # MakeFile Creator
 
-MakeFile Creator is an utility for managing makefiles in C/C++ projects.
+MakeFile-Creator is an utility for managing makefiles in C/C++ projects.
 
 ## How it works?
 

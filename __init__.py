@@ -3,7 +3,7 @@
 import mfc.config
 import mfc.utils
 
-mfc.config.NAME = 'MakeFile Creator'
+mfc.config.NAME = 'MakeFile-Creator'
 mfc.config.PACKAGE_NAME = 'mfc'
 mfc.config.VERSION = 'v0.0.1-beta'
 
