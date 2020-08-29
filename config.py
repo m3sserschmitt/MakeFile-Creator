@@ -19,6 +19,10 @@ DEFAULTS = {
 
 
 def import_config() -> dict:
+    """
+    Imports user configurations from mfc.config.json file.
+    :return: dict containing user configurations.
+    """
     path = DEFAULTS['PROJECT_ROOT'] + '/mfc.config.json'
     required = copy.deepcopy(DEFAULTS)
 

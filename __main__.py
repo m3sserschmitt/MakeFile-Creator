@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 
-
-import mfc.config
+import makefile_creator
 
 if __name__ == '__main__':
-    config = mfc.config.import_config()
+    config = makefile_creator.config.import_config()
 
-    mfc.utils.PROJECT_ROOT = config['PROJECT_ROOT']
-    mfc.utils.CC = config['CC']
-    mfc.utils.EXTENSIONS = config['EXTENSIONS']
-    mfc.utils.IGNORE_PATHS.update(config['IGNORE_PATHS'])
-    mfc.utils.C_FLAGS.update(config['C_FLAGS'])
-    mfc.utils.RM = config['RM']
-    mfc.utils.TARGET = config['TARGET']
-    mfc.utils.CLEAN = config['CLEAN']
+    makefile_creator.utils.PROJECT_ROOT = config['PROJECT_ROOT']
+    makefile_creator.utils.CC = config['CC']
+    makefile_creator.utils.EXTENSIONS = config['EXTENSIONS']
+    makefile_creator.utils.IGNORE_PATHS.update(config['IGNORE_PATHS'])
+    makefile_creator.utils.C_FLAGS.update(config['C_FLAGS'])
+    makefile_creator.utils.RM = config['RM']
+    makefile_creator.utils.TARGET = config['TARGET']
+    makefile_creator.utils.CLEAN = config['CLEAN']
 
-    mfc.utils.create_makefile()
+    makefile_creator.utils.create_makefile()
 
-    print(mfc.config.NAME, end=' ')
-    print(mfc.config.VERSION)
+    print(makefile_creator.config.NAME, end=' ')
+    print(makefile_creator.config.VERSION)

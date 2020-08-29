@@ -6,7 +6,7 @@ MakeFile-Creator is an utility for managing makefiles in C/C++ projects.
 
 Install the package from Python Package Index using the command:
 
-`pip3 install mfc`
+`pip3 install makefile-creator`
 
 Then:
 
@@ -51,3 +51,7 @@ Meaning:
 
 * _**`clean`:**_ `true`, if you want to clean redundant dependencies .d files (`false`, by default).
 ##### **Make sure to save the file as `mfc.config.json` !**
+
+Run the script:
+
+`python3 -m makefile_creator`

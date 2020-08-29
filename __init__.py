@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
 
-import mfc.config
-import mfc.utils
 
-mfc.config.NAME = 'MakeFile-Creator'
-mfc.config.PACKAGE_NAME = 'mfc'
-mfc.config.VERSION = 'v0.0.1-beta'
+import makefile_creator.config
+import makefile_creator.utils
 
-mfc.utils.PROJECT_ROOT = mfc.config.DEFAULTS['PROJECT_ROOT']
-mfc.utils.CC = mfc.config.DEFAULTS['CC']
-mfc.utils.EXTENSIONS = mfc.config.DEFAULTS['EXTENSIONS']
-mfc.utils.IGNORE_PATHS.update(mfc.config.DEFAULTS['IGNORE_PATHS'])
-mfc.utils.C_FLAGS.update(mfc.config.DEFAULTS['C_FLAGS'])
-mfc.utils.RM = mfc.config.DEFAULTS['RM']
-mfc.utils.TARGET = mfc.config.DEFAULTS['TARGET']
-mfc.utils.CLEAN = mfc.config.DEFAULTS['CLEAN']
+makefile_creator.config.NAME = 'MakeFile-Creator'
+makefile_creator.config.PACKAGE_NAME = 'makefile_creator'
+makefile_creator.config.VERSION = 'v0.0.1-beta1'
+
+makefile_creator.utils.PROJECT_ROOT = makefile_creator.config.DEFAULTS['PROJECT_ROOT']
+makefile_creator.utils.CC = makefile_creator.config.DEFAULTS['CC']
+makefile_creator.utils.EXTENSIONS = makefile_creator.config.DEFAULTS['EXTENSIONS']
+makefile_creator.utils.IGNORE_PATHS.update(makefile_creator.config.DEFAULTS['IGNORE_PATHS'])
+makefile_creator.utils.C_FLAGS.update(makefile_creator.config.DEFAULTS['C_FLAGS'])
+makefile_creator.utils.RM = makefile_creator.config.DEFAULTS['RM']
+makefile_creator.utils.TARGET = makefile_creator.config.DEFAULTS['TARGET']
+makefile_creator.utils.CLEAN = makefile_creator.config.DEFAULTS['CLEAN']
