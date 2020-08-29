@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
 
-import makefile_creator
+import makefile_creator.utils as utils
+import makefile_creator.config as config
+from os.path import abspath
 
 if __name__ == '__main__':
-    config = makefile_creator.config.import_config()
+    configuration = config.import_config()
 
-    makefile_creator.utils.PROJECT_ROOT = config['PROJECT_ROOT']
-    makefile_creator.utils.CC = config['CC']
-    makefile_creator.utils.EXTENSIONS = config['EXTENSIONS']
-    makefile_creator.utils.IGNORE_PATHS.update(config['IGNORE_PATHS'])
-    makefile_creator.utils.C_FLAGS.update(config['C_FLAGS'])
-    makefile_creator.utils.RM = config['RM']
-    makefile_creator.utils.TARGET = config['TARGET']
-    makefile_creator.utils.CLEAN = config['CLEAN']
+    utils.PROJECT_ROOT = configuration['PROJECT_ROOT']
+    utils.CC = configuration['CC']
+    utils.EXTENSIONS = configuration['EXTENSIONS']
+    utils.IGNORE_PATHS.update([abspath(p) for p in configuration['IGNORE_PATHS']])
+    utils.C_FLAGS.update(configuration['C_FLAGS'])
+    utils.RM = configuration['RM']
+    utils.TARGET = configuration['TARGET']
+    utils.CLEAN = configuration['CLEAN']
 
-    makefile_creator.utils.create_makefile()
+    utils.create_makefile()
 
-    print(makefile_creator.config.NAME, end=' ')
-    print(makefile_creator.config.VERSION)
+    print(config.NAME, end=' ')
+    print(config.VERSION)

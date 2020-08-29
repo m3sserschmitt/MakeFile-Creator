@@ -26,15 +26,14 @@ def index(directory: str) -> set:
     return set([str(p) for p in path.expanduser().iterdir()])
 
 
-def get_directories(files: set, ignore_paths: set) -> set:
+def get_directories(files: set) -> set:
     """
     Get all directories from a given list of files.
     :param files: set of files to get directories.
-    :param ignore_paths: paths to ignore.
     :return: set of all directories from given paths.
     """
 
-    return set([file for file in files if os.path.isdir(file) and file not in ignore_paths])
+    return set([file for file in files if os.path.isdir(file) and file not in IGNORE_PATHS])
 
 
 def is_source_file(file_path: str) -> bool:
@@ -57,16 +56,14 @@ def is_d_file(file_path: str) -> bool:
     return os.path.isfile(file_path) and file_path.rsplit('.', maxsplit=1)[-1] == 'd'
 
 
-def get_source_files(files: set, ignore_paths: set) -> set:
+def get_source_files(files: set) -> set:
     """
     Get all source files from a given list of files paths.
     :param files: files paths to check.
-    :param ignore_paths: paths to ignore.
     :return: set containing all source files from given paths.
     """
 
-    # [print(file, is_source_file(file), file not in ignore_paths) for file in files]
-    return set([file for file in files if is_source_file(file) and file not in ignore_paths])
+    return set([file for file in files if is_source_file(file) and file not in IGNORE_PATHS])
 
 
 def get_d_files(files: set) -> set:
@@ -171,7 +168,7 @@ def get_dependencies_from_source(file_path: str) -> list:
         raise FileNotFoundError
 
 
-def index_dependencies(source_file: str, found: list) -> None:
+def index_dependencies(source_file: str, found: set) -> None:
     """
     Index all dependencies of a source file recursively (Depth-firt Search approach).
     :param source_file: source file to index dependencies.
@@ -190,10 +187,13 @@ def index_dependencies(source_file: str, found: list) -> None:
     for dependency in dependencies:
         new_dependency = os.path.abspath(dependency)
 
+        if new_dependency in IGNORE_PATHS:
+            continue
+
         print('\t-->', new_dependency)
 
         if new_dependency not in found:
-            found.append(new_dependency)
+            found.add(new_dependency)
             index_dependencies(new_dependency, found)
 
     os.chdir(current_dir)
@@ -262,7 +262,7 @@ def create_d_files(source_files: set, root_path: str) -> set:
     d_files = set()
 
     for file in source_files:
-        dependencies = []
+        dependencies = set()
 
         print('[+] Indexing', file)
         index_dependencies(file, dependencies)
@@ -288,27 +288,26 @@ def create_d_files(source_files: set, root_path: str) -> set:
     return d_files
 
 
-def traverse(starting_path: str, root_path: str, ignore_paths: set) -> tuple:
+def traverse(starting_path: str, root_path: str) -> tuple:
     """
     Traverse project source tree.
     :param starting_path: path to start from.
     :param root_path: porject root path.
-    :param ignore_paths: paths to ignore.
     :return: tuple, containing a set of all subdir.mk files and a set of all .d files.
     """
 
     all_files = index(starting_path)
-    directories = get_directories(all_files, ignore_paths)
+    directories = get_directories(all_files)
 
     subdir_mk_files = set()
     d_files = set()
 
     for directory in directories:
-        mk, d = traverse(directory, root_path, ignore_paths)
+        mk, d = traverse(directory, root_path)
         subdir_mk_files.update(mk)
         d_files.update(d)
 
-    source_files = get_source_files(all_files, ignore_paths)
+    source_files = get_source_files(all_files)
 
     if source_files:
         subdir_mk_files.add(create_subdir_mk(source_files, root_path))
@@ -323,10 +322,9 @@ def create_makefile() -> None:
     :return: None
     """
     project_root_directory = PROJECT_ROOT
-    ignore_paths = set([os.path.abspath(file) for file in IGNORE_PATHS])
 
     try:
-        mk_files, d_files = traverse(project_root_directory, project_root_directory, ignore_paths)
+        mk_files, d_files = traverse(project_root_directory, project_root_directory)
     except FileNotFoundError:
         return
 
