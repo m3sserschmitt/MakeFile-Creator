@@ -2,17 +2,23 @@
 
 MakeFile-Creator is an utility for managing makefiles in C/C++ projects.
 
-## How it works?
+# Getting started
+
+These instructions will get you a copy of the project up and running on your local machine.
+
+### Prerequisites
+
+`Python >= 3.6`
+
+### Installing
 
 Install the package from Python Package Index using the command:
 
 `pip3 install makefile-creator`
 
-Then:
+### Configuration
 
 `cd /your/project/path`
-
-## Configuration
 
 You have to create a configuration file, using JSON format as follows:
 You may want to use this command from terminal (or open your favourite text editor, and after you've done, save as `mfc.config.json`):
@@ -50,8 +56,17 @@ Meaning:
 ##### Other commands:
 
 * _**`clean`:**_ `true`, if you want to clean redundant dependencies .d files (`false`, by default).
-##### **Make sure to save the file as `mfc.config.json` !**
+
+**Make sure to save the file as `mfc.config.json` !**
 
 Run the script:
 
 `python3 -m makefile_creator`
+
+## Authors
+
+* **Romulus-Emanuel Ruja (romulus-emanuel.ruja@tutanota.com)**
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
