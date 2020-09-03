@@ -14,7 +14,8 @@ DEFAULTS = {
     'EXTENSIONS': ['cpp'],
     'IGNORE_PATHS': set(),
     'PROJECT_ROOT': os.getcwd(),
-    'CLEAN': False
+    'CLEAN': False,
+    'CUSTOM_TARGETS': dict()
 }
 
 

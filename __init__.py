@@ -15,3 +15,4 @@ utils.C_FLAGS.update(config.DEFAULTS['C_FLAGS'])
 utils.RM = config.DEFAULTS['RM']
 utils.TARGET = config.DEFAULTS['TARGET']
 utils.CLEAN = config.DEFAULTS['CLEAN']
+# utils.CUSTOM_TARGETS = config.DEFAULTS['CUSTOM_TARGETS']

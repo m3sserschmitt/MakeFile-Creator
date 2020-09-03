@@ -13,6 +13,7 @@ EXTENSIONS = list()
 IGNORE_PATHS = set()
 PROJECT_ROOT = str()
 CLEAN = bool()
+CUSTOM_TARGETS = dict()
 
 
 def index(directory: str) -> set:
@@ -344,7 +345,12 @@ def create_makefile() -> None:
 
     makefile_content += TARGET + ': $(OBJECTS)\n'
     makefile_content += '\t$(CC) $(OBJECTS) ' + c_flags + ' -o $(TARGET)\n\n'
-    makefile_content += 'clean:\n\t$(RM) $(OBJECTS) $(TARGET)'
+    
+    makefile_content += 'clean:\n\t$(RM) $(OBJECTS) $(TARGET)\n\n'
+
+    for target, command in CUSTOM_TARGETS.items():
+        makefile_content += target + ':\n'
+        makefile_content += '\t' + command + '\n\n'
 
     makefile_path = project_root_directory + '/Makefile'
 
