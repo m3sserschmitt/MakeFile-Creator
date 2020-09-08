@@ -56,6 +56,16 @@ Meaning:
 ##### Other commands:
 
 * _**`clean`:**_ `true`, if you want to clean redundant dependencies .d files (`false`, by default).
+* _**`custom_targets`:**_ use as follows:
+```
+"custom_targets": {
+    "target_name": "command",
+    "other_target": "other_command",
+    ...
+}"
+````
+* _**`ld_flags`**_: similar to `c_flags`, but flags set using this command will only be used
+at linkage.
 
 **Make sure to save the file as `mfc.config.json` !**
 

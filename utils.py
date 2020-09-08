@@ -9,6 +9,7 @@ TARGET = str()
 CC = str()
 RM = str()
 C_FLAGS = set()
+LD_FLAGS = set()
 EXTENSIONS = list()
 IGNORE_PATHS = set()
 PROJECT_ROOT = str()
@@ -134,7 +135,7 @@ def create_subdir_mk(source_files: set, root_path: str) -> str:
     mk_file_content = 'OBJECTS += ' + objects_list + '\n\n'
     mk_file_content += 'CC_DEPS += ' + deps_list + '\n\n'
 
-    c_flags = ' '.join(C_FLAGS)
+    c_flags = ' '.join(sorted(C_FLAGS))
 
     for extension in EXTENSIONS:
         mk_file_content += dir_relative_path + '/%.o: ' + dir_relative_path + '/%.' + extension + '\n'
@@ -341,10 +342,10 @@ def create_makefile() -> None:
 
     makefile_content += '\n'.join(includes) + '\n\n'
 
-    c_flags = ' '.join(C_FLAGS - {'-c'})
+    linkage_flags = ' '.join(sorted(LD_FLAGS))
 
     makefile_content += TARGET + ': $(OBJECTS)\n'
-    makefile_content += '\t$(CC) $(OBJECTS) ' + c_flags + ' -o $(TARGET)\n\n'
+    makefile_content += '\t$(CC) $(OBJECTS) ' + linkage_flags + ' -o $(TARGET)\n\n'
     
     makefile_content += 'clean:\n\t$(RM) $(OBJECTS) $(TARGET)\n\n'
 

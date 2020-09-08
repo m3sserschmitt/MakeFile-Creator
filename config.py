@@ -11,6 +11,7 @@ DEFAULTS = {
     'CC': 'g++',
     'RM': 'rm -v',
     'C_FLAGS': {'-Wall', '-c'},
+    'LD_FLAGS': set(),
     'EXTENSIONS': ['cpp'],
     'IGNORE_PATHS': set(),
     'PROJECT_ROOT': os.getcwd(),

@@ -12,6 +12,7 @@ if __name__ == '__main__':
     utils.EXTENSIONS = configuration['EXTENSIONS']
     utils.IGNORE_PATHS.update([abspath(p) for p in configuration['IGNORE_PATHS']])
     utils.C_FLAGS.update(configuration['C_FLAGS'])
+    utils.LD_FLAGS.update(configuration['LD_FLAGS'])
     utils.RM = configuration['RM']
     utils.TARGET = configuration['TARGET']
     utils.CLEAN = configuration['CLEAN']
