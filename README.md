@@ -75,7 +75,7 @@ Run the script:
 
 ## Authors
 
-* **Romulus-Emanuel Ruja <romulus-emanuel.ruja@tutanota.com>**
+* **Romulus-Emanuel Ruja (romulus-emanuel.ruja@tutanota.com)**
 
 ## License
 
