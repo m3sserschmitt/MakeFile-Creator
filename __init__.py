@@ -6,7 +6,7 @@ import makefile_creator.utils as utils
 
 config.NAME = 'MakeFile-Creator'
 config.PACKAGE_NAME = 'makefile_creator'
-config.VERSION = 'v0.0.3-beta1'
+config.VERSION = 'v0.0.4-beta1'
 
 utils.PROJECT_ROOT = config.DEFAULTS['PROJECT_ROOT']
 utils.CC = config.DEFAULTS['CC']

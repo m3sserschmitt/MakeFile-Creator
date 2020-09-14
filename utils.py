@@ -112,6 +112,8 @@ def create_subdir_mk(source_files: set, root_path: str) -> str:
     deps_list = ''
 
     relative_path = ''
+    source_files = sorted(source_files)
+
     for source_file in source_files:
         relative_path = get_relative_path(source_file, root_path)
 
@@ -124,6 +126,8 @@ def create_subdir_mk(source_files: set, root_path: str) -> str:
     deps_list = deps_list.strip('\\\n')
 
     dir_relative_path = os.path.dirname(relative_path)
+
+    source_files = set(source_files)
 
     try:
         elem = source_files.pop()
@@ -262,6 +266,7 @@ def create_d_files(source_files: set, root_path: str) -> set:
         existent_d_files = get_d_files(index(d_files_directory))
 
     d_files = set()
+    source_files = sorted(source_files)
 
     for file in source_files:
         dependencies = set()
@@ -269,6 +274,8 @@ def create_d_files(source_files: set, root_path: str) -> set:
         print('[+] Indexing', file)
         index_dependencies(file, dependencies)
         print('\n[+] Done', file, '\n')
+
+        dependencies = sorted(dependencies)
 
         file_relative_path = get_relative_path(file, root_path)
         dependencies_list = '\\\n'.join([file_relative_path] + [get_relative_path(dependency, root_path)
@@ -338,7 +345,7 @@ def create_makefile() -> None:
 
     makefile_content += '\n\nall: ' + TARGET + '\n\n'
 
-    includes = ['-include ' + mk_file for mk_file in mk_files] + ['-include $(CC_DEPS)']
+    includes = sorted(['-include ' + mk_file for mk_file in mk_files] + ['-include $(CC_DEPS)'])
 
     makefile_content += '\n'.join(includes) + '\n\n'
 
