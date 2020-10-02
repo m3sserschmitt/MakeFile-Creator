@@ -95,8 +95,31 @@ def get_relative_path(file_absolute_path: str, root_path: str) -> str:
     :param root_path: get paths relative to this path.
     :return: relative path.
     """
+    if root_path in file_absolute_path:
+        return './' + file_absolute_path.split(root_path, 1)[-1].strip(' /')
 
-    return './' + file_absolute_path.split(root_path, 1)[-1].strip(' /')
+    file_dir = os.path.dirname(file_absolute_path).strip('/')
+    root_path = root_path.strip('/')
+
+    file_dir_tokens = file_dir.split('/')
+    root_dir_tokens = root_path.split('/')
+
+    back = ''
+    path = ''
+
+    for i in range(max(len(file_dir_tokens), len(root_dir_tokens))):
+        try:
+            if file_dir_tokens[i] != root_dir_tokens[i]:
+                back += '../'
+                path += file_dir_tokens[i] + '/'
+                continue
+        except IndexError:
+            try:
+                path += file_dir_tokens[i] + '/'
+            except IndexError:
+                pass
+
+    return back + path + os.path.basename(file_absolute_path)
 
 
 def create_subdir_mk(source_files: set, root_path: str) -> str:
