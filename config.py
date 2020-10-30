@@ -11,8 +11,9 @@ DEFAULTS = {
     'CC': 'g++',
     'RM': 'rm -v',
     'C_FLAGS': {'-Wall', '-c'},
+    'VERBOSE': False,
     'LD_FLAGS': set(),
-    'EXTENSIONS': ['cpp'],
+    'EXTENSIONS': ['cc', 'cpp'],
     'IGNORE_PATHS': set(),
     'PROJECT_ROOT': os.getcwd(),
     'CLEAN': False,
@@ -36,6 +37,6 @@ def import_config() -> dict:
             required.update(user_configuration)
             config_file.close()
     except FileNotFoundError:
-        print('[-] Configuration file does not exist')
+        print('[-] Configuration file does not exist.')
     finally:
         return required

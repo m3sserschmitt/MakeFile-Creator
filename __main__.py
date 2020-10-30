@@ -17,6 +17,7 @@ if __name__ == '__main__':
     utils.TARGET = configuration['TARGET']
     utils.CLEAN = configuration['CLEAN']
     utils.CUSTOM_TARGETS = configuration['CUSTOM_TARGETS']
+    utils.VERBOSE = configuration['VERBOSE']
 
     utils.create_makefile()
 

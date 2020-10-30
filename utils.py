@@ -11,10 +11,12 @@ RM = str()
 C_FLAGS = set()
 LD_FLAGS = set()
 EXTENSIONS = list()
+INCLUDE_PATHS = set()
 IGNORE_PATHS = set()
 PROJECT_ROOT = str()
 CLEAN = bool()
 CUSTOM_TARGETS = dict()
+VERBOSE = bool()
 
 
 def index(directory: str) -> set:
@@ -188,6 +190,7 @@ def get_dependencies_from_source(file_path: str) -> list:
 
             # get all included header files
             dependencies = re.findall('(?:#include)\\s+\"(.+)\"', file_content)
+
             file_pointer.close()  # close file
 
             # return dependencies
@@ -208,22 +211,34 @@ def index_dependencies(source_file: str, found: set) -> None:
     source_dir_name = os.path.dirname(source_file)
     current_dir = os.getcwd()
 
-    print('\n[+] Reading file:', source_file)
+    if VERBOSE:
+        print('\n[+] Reading file:', source_file)
 
     dependencies = get_dependencies_from_source(source_file)
     os.chdir(source_dir_name)
 
     for dependency in dependencies:
-        new_dependency = os.path.abspath(dependency)
+        dep_abs_path = os.path.abspath(dependency)
 
-        if new_dependency in IGNORE_PATHS:
+        if not os.path.isfile(dep_abs_path):
+            for include_path in INCLUDE_PATHS:
+                possible_path = include_path + '/' + dependency
+                if os.path.isfile(possible_path):
+                    dep_abs_path = possible_path
+                    break
+            else:
+                print('[-] Error:', source_file, 'dependes on', dependency, 'but this file cannot be found.')
+                raise FileNotFoundError
+
+        if dep_abs_path in IGNORE_PATHS:
             continue
 
-        print('\t-->', new_dependency)
+        if VERBOSE:
+            print('\t-->', dep_abs_path)
 
-        if new_dependency not in found:
-            found.add(new_dependency)
-            index_dependencies(new_dependency, found)
+        if dep_abs_path not in found:
+            found.add(dep_abs_path)
+            index_dependencies(dep_abs_path, found)
 
     os.chdir(current_dir)
 
@@ -294,9 +309,11 @@ def create_d_files(source_files: set, root_path: str) -> set:
     for file in source_files:
         dependencies = set()
 
-        print('[+] Indexing', file)
+        if VERBOSE:
+            print('[+] Indexing', file)
         index_dependencies(file, dependencies)
-        print('\n[+] Done', file, '\n')
+        if VERBOSE:
+            print('\n[+] Done', file, '\n')
 
         dependencies = sorted(dependencies)
 
@@ -348,12 +365,23 @@ def traverse(starting_path: str, root_path: str) -> tuple:
     return subdir_mk_files, d_files
 
 
+def get_include_paths(compiler_flags: set) -> set:
+    paths = set()
+
+    for flag in compiler_flags:
+        if flag[:2] == '-I':
+            paths.add(os.path.abspath(flag[2:]).rstrip('/'))
+
+    return paths
+
+
 def create_makefile() -> None:
     """
     Creates makefiles for project at path PROJECT_ROOT
     :return: None
     """
     project_root_directory = PROJECT_ROOT
+    INCLUDE_PATHS.update(get_include_paths(C_FLAGS))
 
     try:
         mk_files, d_files = traverse(project_root_directory, project_root_directory)
@@ -368,7 +396,8 @@ def create_makefile() -> None:
 
     makefile_content += '\n\nall: ' + TARGET + '\n\n'
 
-    includes = sorted(['-include ' + mk_file for mk_file in mk_files] + ['-include $(CC_DEPS)'])
+    includes = sorted(['-include ' + mk_file for mk_file in mk_files])
+    includes.extend(['-include $(CC_DEPS)'])
 
     makefile_content += '\n'.join(includes) + '\n\n'
 
