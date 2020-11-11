@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+from copy import deepcopy
 import os
 import re
 
@@ -142,10 +143,10 @@ def create_subdir_mk(source_files: set, root_path: str) -> str:
     for source_file in source_files:
         relative_path = get_relative_path(source_file, root_path)
 
-        objects_list += change_extension(relative_path, 'o') + '\\\n'
+        objects_list += change_extension(relative_path, 'o') + ' \\\n'
 
         deps_list += os.path.dirname(relative_path) + '/deps/'
-        deps_list += change_extension(os.path.basename(relative_path), 'd') + '\\\n'
+        deps_list += change_extension(os.path.basename(relative_path), 'd') + ' \\\n'
 
     objects_list = objects_list.strip('\\\n')
     deps_list = deps_list.strip('\\\n')
@@ -168,13 +169,34 @@ def create_subdir_mk(source_files: set, root_path: str) -> str:
 
     for extension in EXTENSIONS:
         mk_file_content += dir_relative_path + '/%.o: ' + dir_relative_path + '/%.' + extension + '\n'
-        mk_file_content += '\t$(CC) ' + c_flags + ' $< -o $@\n\n'
+        mk_file_content += '\t@echo \'Building file: $<\'\n'
+        mk_file_content += '\t$(CC) ' + c_flags + ' $< -o $@\n'
+        mk_file_content += '\t@echo \'Buld finished: $<\'\n'
+        mk_file_content += "\t@echo\n\n"
 
     with open(mk_file_path, 'w') as mk_file_pointer:
         mk_file_pointer.write(mk_file_content)
         mk_file_pointer.close()
 
     return get_relative_path(mk_file_path, root_path)
+
+
+def remove_comments(code: str) -> str:
+    uncommented = code.split('//', 1)[0].strip()
+
+    tokens = uncommented.split('/*')
+    tokens = [token for token in tokens]
+
+    buff = deepcopy(tokens)
+    tokens = [buff[0]]
+
+    for elem in buff:
+        try:
+            tokens.append(elem.split('*/', 1)[1])
+        except IndexError:
+            pass
+
+    return ''.join(tokens).strip()
 
 
 def get_dependencies_from_source(file_path: str) -> list:
@@ -186,14 +208,19 @@ def get_dependencies_from_source(file_path: str) -> list:
 
     try:
         with open(file_path, "r") as file_pointer:  # open file
-            file_content = file_pointer.read()  # read content
+            dependencies = list()
+            include_detected = False
+            lines = file_pointer.readlines()
 
-            # get all included header files
-            dependencies = re.findall('(?:#include)\\s+\"(.+)\"', file_content)
+            for line in lines:
+                line = line.strip('\n')
+                if '#include' in line:
+                    include_detected = True
+                    uncommented = remove_comments(line)
+                    dependencies.extend(re.findall('(?:#include)\\s+\"(.+)\"', uncommented))
+                elif line and include_detected:
+                    break
 
-            file_pointer.close()  # close file
-
-            # return dependencies
             return dependencies
     except FileNotFoundError:  # if file not found, inform user about error end close
         print('[-] Error: Cannot open file:', file_path)
@@ -318,7 +345,7 @@ def create_d_files(source_files: set, root_path: str) -> set:
         dependencies = sorted(dependencies)
 
         file_relative_path = get_relative_path(file, root_path)
-        dependencies_list = '\\\n'.join([file_relative_path] + [get_relative_path(dependency, root_path)
+        dependencies_list = ' \\\n'.join([file_relative_path] + [get_relative_path(dependency, root_path)
                                         for dependency in dependencies])
 
         d_file_content = change_extension(file_relative_path, 'o') + ': ' + dependencies_list
@@ -404,7 +431,10 @@ def create_makefile() -> None:
     linkage_flags = ' '.join(sorted(LD_FLAGS))
 
     makefile_content += TARGET + ': $(OBJECTS)\n'
-    makefile_content += '\t$(CC) $(OBJECTS) ' + linkage_flags + ' -o $(TARGET)\n\n'
+    makefile_content += '\t@echo Building target: "$@".\n'
+    makefile_content += '\t@echo Invoking ' + CC.upper() + ' Linker ...\n'
+    makefile_content += '\t$(CC) $(OBJECTS) ' + linkage_flags + ' -o $(TARGET)\n'
+    makefile_content += '\t@echo Target "$@" build successfully.\n\t@echo Done.\n\n'
     
     makefile_content += 'clean:\n\t$(RM) $(OBJECTS) $(TARGET)\n\n'
 

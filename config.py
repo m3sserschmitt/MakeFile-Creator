@@ -9,15 +9,15 @@ PACKAGE_NAME = str()
 DEFAULTS = {
     'TARGET': 'my_project',
     'CC': 'g++',
-    'RM': 'rm -v',
-    'C_FLAGS': {'-Wall', '-c'},
+    'C_FLAGS': ['-Wall', '-c'],
+    'LD_FLAGS': [],
+    'EXTENSIONS': ['c', 'cc', 'cpp'],
+    'IGNORE_PATHS': [],
+    'CUSTOM_TARGETS': dict(),
     'VERBOSE': False,
-    'LD_FLAGS': set(),
-    'EXTENSIONS': ['cc', 'cpp'],
-    'IGNORE_PATHS': set(),
-    'PROJECT_ROOT': os.getcwd(),
+    'RM': 'rm -v',
     'CLEAN': False,
-    'CUSTOM_TARGETS': dict()
+    'PROJECT_ROOT': os.getcwd(),
 }
 
 
@@ -38,5 +38,14 @@ def import_config() -> dict:
             config_file.close()
     except FileNotFoundError:
         print('[-] Configuration file does not exist.')
+        del DEFAULTS['PROJECT_ROOT']
+
+        with open('mfc.config.json', 'w') as config_file:
+            json.dump(DEFAULTS, config_file, indent=2)
+            config_file.close()
+
+        print('[+] Configuration file automatically generated.')
+        print('[+] Open \'mfc.config.json\' to change default settings.')
+
     finally:
         return required
