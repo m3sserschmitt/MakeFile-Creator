@@ -1,51 +1,82 @@
+import makefile_creator.file_util as file_util
+from makefile_creator.iset import Set
+
 import copy
 import json
+import sys
 import os
 
 VERSION = str()
-NAME = str()
 PACKAGE_NAME = str()
 
 DEFAULTS = {
-    'TARGET': 'my_project',
-    'CC': 'g++',
-    'C_FLAGS': ['-Wall', '-c'],
-    'LD_FLAGS': [],
-    'EXTENSIONS': ['c', 'cc', 'cpp'],
-    'IGNORE_PATHS': [],
+    'TARGET': os.path.basename(os.getcwd()),
+    'CC': 'gcc',
+    'LD': 'gcc',
+    'C_FLAGS': Set(['-c', '-Wall']),
+    'LD_FLAGS': Set(),
+    'EXTENSIONS': Set(['c', 'cc', 'cpp']),
+    'IGNORE_PATHS': Set(),
     'CUSTOM_TARGETS': dict(),
     'VERBOSE': False,
     'RM': 'rm -v',
-    'CLEAN': False,
     'PROJECT_ROOT': os.getcwd(),
+    'BUILD_DIRECTORY': file_util.get_relative_path(os.getcwd() + '/build', os.getcwd()),
+    'BIN_DIRECTORY': file_util.get_relative_path(os.getcwd() + '/build/bin', os.getcwd())
 }
 
 
-def import_config() -> dict:
+def remove_irrelevant(config: dict) -> None:
+    for key in ('PROJECT_ROOT', 'CONFIG', 'CONFIG_UPDATE', 'IGNORE_CONFIG_FILE', 'VERSION'):
+        try:
+            del config[key]
+        except KeyError:
+            continue
+
+
+def get_user_set_config() -> list:
+    defaults = copy.deepcopy(DEFAULTS)
+    remove_irrelevant(defaults)
+
+    cmd = [arg.split('=', 1)[0].strip('-').upper() for arg in sys.argv[1:]]
+    user_set_config = set(cmd).intersection(set(defaults))
+
+    return list(user_set_config)
+
+
+def import_config(defaults: bool = True) -> dict:
     """
     Imports user configurations from mfc.config.json file.
     :return: dict containing user configurations.
     """
     path = DEFAULTS['PROJECT_ROOT'] + '/mfc.config.json'
-    required = copy.deepcopy(DEFAULTS)
 
-    try:
-        # open config file, if exists
-        with open(path, 'r') as config_file:
-            user_configuration = json.load(config_file)
-            user_configuration = dict([(conf[0].upper(), conf[1]) for conf in user_configuration.items()])
-            required.update(user_configuration)
-            config_file.close()
-    except FileNotFoundError:
-        print('[-] Configuration file does not exist.')
-        del DEFAULTS['PROJECT_ROOT']
+    required = {}
+    if defaults:
+        required = copy.deepcopy(DEFAULTS)
 
-        with open('mfc.config.json', 'w') as config_file:
-            json.dump(DEFAULTS, config_file, indent=2)
-            config_file.close()
+    # open config file, if exists
+    with open(path, 'r') as config_file:
+        user_configuration = json.load(config_file)
+        user_configuration = dict([(conf[0].upper(), conf[1]) for conf in user_configuration.items()])
+        required.update(user_configuration)
+        config_file.close()
 
-        print('[+] Configuration file automatically generated.')
-        print('[+] Open \'mfc.config.json\' to change default settings.')
+    return required
 
-    finally:
-        return required
+
+def export_config(config: dict) -> None:
+    path = DEFAULTS['PROJECT_ROOT'] + '/mfc.config.json'
+
+    with open(path, 'w') as file_pointer:
+        json.dump(config, file_pointer, indent=2)
+        file_pointer.close()
+
+
+def update_config(config: dict) -> None:
+    user_set_config = get_user_set_config()
+    user_set_config = dict([(option, config[option]) for option in user_set_config])
+
+    existing_config = import_config(False)
+    existing_config.update(user_set_config)
+    export_config(existing_config)

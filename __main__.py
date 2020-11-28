@@ -1,25 +1,47 @@
 #!/usr/bin/env python3
 
-import makefile_creator.utils as utils
+from makefile_creator.args import parse_arguments
+
+import makefile_creator.makefiles as makefiles
 import makefile_creator.config as config
-from os.path import abspath
+
 
 if __name__ == '__main__':
-    configuration = config.import_config()
+    args, user_set_args = parse_arguments()
 
-    utils.PROJECT_ROOT = configuration['PROJECT_ROOT']
-    utils.CC = configuration['CC']
-    utils.EXTENSIONS = configuration['EXTENSIONS']
-    utils.IGNORE_PATHS.update([abspath(p) for p in configuration['IGNORE_PATHS']])
-    utils.C_FLAGS.update(configuration['C_FLAGS'])
-    utils.LD_FLAGS.update(configuration['LD_FLAGS'])
-    utils.RM = configuration['RM']
-    utils.TARGET = configuration['TARGET']
-    utils.CLEAN = configuration['CLEAN']
-    utils.CUSTOM_TARGETS = configuration['CUSTOM_TARGETS']
-    utils.VERBOSE = configuration['VERBOSE']
+    if args['VERSION']:
+        print(config.PACKAGE_NAME, config.VERSION)
+        exit()
 
-    utils.create_makefile()
+    if args['CONFIG']:
+        config.remove_irrelevant(args)
+        config.export_config(args)
 
-    print(config.NAME, end=' ')
-    print(config.VERSION)
+        print('[+] Configuration file generated.')
+        print('[+] Open \'mfc.config.json\' to change settings.')
+        exit()
+
+    if args['CONFIG_UPDATE']:
+        config.remove_irrelevant(args)
+        config.update_config(args)
+
+        print('[+] Configuration file updated.')
+        exit()
+
+    configuration = {}
+    if not args['IGNORE_CONFIG_FILE']:
+        try:
+            configuration = config.import_config(False)
+        except FileNotFoundError:
+            print('[-] Configuration file does not exist.')
+            exit(1)
+
+        for option in args:
+            try:
+                if option not in user_set_args:
+                    args[option] = configuration[option]
+            except KeyError:
+                continue
+
+    makefiles.set_variables(args)
+    makefiles.create_makefiles()
