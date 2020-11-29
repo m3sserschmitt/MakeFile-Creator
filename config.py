@@ -15,6 +15,8 @@ DEFAULTS = {
     'LD': 'gcc',
     'C_FLAGS': Set(['-c', '-Wall']),
     'LD_FLAGS': Set(),
+    'LIBS': Set(),
+    'INCLUDE_PATHS': Set(),
     'EXTENSIONS': Set(['c', 'cc', 'cpp']),
     'IGNORE_PATHS': Set(),
     'CUSTOM_TARGETS': dict(),
@@ -22,7 +24,7 @@ DEFAULTS = {
     'RM': 'rm -v',
     'PROJECT_ROOT': os.getcwd(),
     'BUILD_DIRECTORY': file_util.get_relative_path(os.getcwd() + '/build', os.getcwd()),
-    'BIN_DIRECTORY': file_util.get_relative_path(os.getcwd() + '/build/bin', os.getcwd())
+    'BIN_DIRECTORY': file_util.get_relative_path(os.getcwd() + '/build', os.getcwd())
 }
 
 

@@ -15,5 +15,4 @@ makefiles.EXTENSIONS.extend(config.DEFAULTS['EXTENSIONS'])
 makefiles.C_FLAGS.extend(config.DEFAULTS['C_FLAGS'])
 makefiles.RM = config.DEFAULTS['RM']
 makefiles.TARGET = config.DEFAULTS['TARGET']
-# makefiles.CLEAN = config.DEFAULTS['CLEAN']
 makefiles.VERBOSE = config.DEFAULTS['VERBOSE']
