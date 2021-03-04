@@ -57,8 +57,8 @@ def set_variables(config: dict) -> None:
     TARGET = config['TARGET']
 
     PROJECT_ROOT = config['PROJECT_ROOT'].rstrip()
-    BUILD_DIRECTORY = os.path.abspath(BUILD_DIRECTORY)
-    BIN_DIRECTORY = os.path.abspath(BIN_DIRECTORY)
+    BUILD_DIRECTORY = os.path.abspath(config['BUILD_DIRECTORY'])
+    BIN_DIRECTORY = os.path.abspath(config['BIN_DIRECTORY'])
 
     CC = config['CC']
     LD = config['LD']
