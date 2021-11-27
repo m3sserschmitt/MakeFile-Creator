@@ -2,6 +2,7 @@
 
 from makefile_creator.iset import Set
 from copy import deepcopy
+from pathlib import Path
 
 import makefile_creator.file_util as file_util
 import makefile_creator.util as util
@@ -35,7 +36,8 @@ def set_include_paths(include_paths: list):
         abs_path = os.path.abspath(path)
 
         INCLUDE_PATHS.append(abs_path)
-        C_FLAGS.append('-I' + file_util.get_relative_path(abs_path, BUILD_DIRECTORY))
+        C_FLAGS.append(
+            '-I' + Path(os.path.relpath(path, start=BUILD_DIRECTORY)).as_posix())
 
 
 def set_variables(config: dict) -> None:
@@ -56,9 +58,9 @@ def set_variables(config: dict) -> None:
 
     TARGET = config['TARGET']
 
-    PROJECT_ROOT = config['PROJECT_ROOT'].rstrip()
-    BUILD_DIRECTORY = os.path.abspath(config['BUILD_DIRECTORY'])
-    BIN_DIRECTORY = os.path.abspath(config['BIN_DIRECTORY'])
+    PROJECT_ROOT = Path(config['PROJECT_ROOT']).resolve()
+    BUILD_DIRECTORY = Path(config['BUILD_DIRECTORY']).resolve()
+    BIN_DIRECTORY = Path(config['BIN_DIRECTORY']).resolve()
 
     CC = config['CC']
     LD = config['LD']
@@ -92,25 +94,25 @@ def create_subdir_mk(source_files: list) -> str:
 
     objects_list = ''
     deps_list = ''
-    src_relative = ''
-    object_relative = ''
-    source_file = ''
+    src_relative = Path()
+    object_relative = Path()
+    source_file = Path()
 
     source_files.sort()
 
     for source_file in source_files:
-        src_relative = file_util.get_relative_path(source_file, PROJECT_ROOT)
-        object_relative = file_util.change_extension(src_relative, 'o')
-        objects_list += object_relative + ' \\\n'
+        src_relative = source_file.relative_to(PROJECT_ROOT)
+        object_relative = src_relative.with_suffix('.o')
+        objects_list += str(object_relative) + ' \\\n'
 
-        deps_dir = os.path.dirname(src_relative) + '/deps/'
-        dep = file_util.change_extension(os.path.basename(src_relative), 'd')
-        deps_relative = deps_dir + dep
+        deps_dir = src_relative.parent / 'deps'
+        dep = src_relative.with_suffix('.d').name
+        deps_relative = deps_dir / dep
 
-        deps_list += deps_relative + ' \\\n'
+        deps_list += str(deps_relative) + ' \\\n'
 
-    src_dir_relative = os.path.dirname(file_util.get_relative_path(source_file, BUILD_DIRECTORY))
-    build_dir_relative = os.path.dirname(object_relative)
+    src_dir_relative = Path(os.path.relpath(source_file, BUILD_DIRECTORY)).parent
+    build_dir_relative = object_relative.parent
 
     objects_list = objects_list.strip('\\\n')
     deps_list = deps_list.strip('\\\n')
@@ -121,20 +123,22 @@ def create_subdir_mk(source_files: list) -> str:
     c_flags = ' '.join(C_FLAGS)
 
     for extension in EXTENSIONS:
-        mk_file_content += build_dir_relative + '/%.o: ' + src_dir_relative + '/%.' + extension + '\n'
+        if os.name == 'nt':
+            mk_file_content += str(build_dir_relative) + "\\\\%.o"
+        else:
+            mk_file_content += str(build_dir_relative / "%.o")
+        mk_file_content += ': ' + (src_dir_relative / f"%.{extension}").as_posix() + '\n'
         mk_file_content += '\t@echo \'Building file: $<\'\n'
         mk_file_content += '\t$(CC) ' + c_flags + ' $< -o $@\n'
-        mk_file_content += '\t@echo \'Build finished: $<\'\n'
-        mk_file_content += "\t@echo\n\n"
+        mk_file_content += '\t@echo \'Build finished: $<\'\n\n'
 
-    mk_dir_relative = os.path.dirname(src_relative.strip('.'))
-    mk_file_path = BUILD_DIRECTORY + mk_dir_relative + '/subdir.mk'
+    mk_file_path = BUILD_DIRECTORY / src_relative.parent / 'subdir.mk'
 
     with open(mk_file_path, 'w') as mk_file_pointer:
         mk_file_pointer.write(mk_file_content)
         mk_file_pointer.close()
 
-    return file_util.get_relative_path(mk_file_path, BUILD_DIRECTORY)
+    return mk_file_path.relative_to(BUILD_DIRECTORY)
 
 
 def remove_comments(code: str) -> str:
@@ -238,9 +242,8 @@ def create_d_files(source_files: list) -> list:
     if not source_files:
         return []
 
-    d_directory = os.path.dirname(source_files[0]) + '/deps'
-    d_directory_relative = file_util.get_relative_path(d_directory, PROJECT_ROOT).strip('.')
-    d_files_directory = BUILD_DIRECTORY + d_directory_relative
+    d_directory_relative = source_files[0].relative_to(PROJECT_ROOT).parent / 'deps'
+    d_files_directory = BUILD_DIRECTORY / d_directory_relative
 
     file_util.create_directory(d_files_directory)
 
@@ -258,17 +261,17 @@ def create_d_files(source_files: list) -> list:
 
         dependencies.sort()
 
-        src_relative = file_util.get_relative_path(file, BUILD_DIRECTORY)
-        dependencies_list = ' \\\n'.join([src_relative] + [file_util.get_relative_path(dependency, BUILD_DIRECTORY)
-                                                           for dependency in dependencies])
+        src_relative = Path(os.path.relpath(file, BUILD_DIRECTORY)).as_posix()
+        dependencies_list = ' \\\n'.join([src_relative] + [Path(os.path.relpath(
+            dependency, BUILD_DIRECTORY)).as_posix() for dependency in dependencies])
 
-        src_relative = file_util.get_relative_path(file, PROJECT_ROOT)
-        object_relative = file_util.change_extension(src_relative, 'o')
+        src_relative = file.relative_to(PROJECT_ROOT)
+        object_relative = src_relative.with_suffix('.o').as_posix()
 
         d_file_content = object_relative + ': ' + dependencies_list
 
-        d_file = file_util.change_extension(os.path.basename(file), 'd')
-        d_file_path = d_files_directory + '/' + d_file
+        d_file = file.with_suffix('.d').name
+        d_file_path = d_files_directory / d_file
 
         with open(d_file_path, 'w') as d_file_pointer:
             d_file_pointer.write(d_file_content)
@@ -279,19 +282,17 @@ def create_d_files(source_files: list) -> list:
     return d_files
 
 
-def update_build_tree(source_dir: str):
-    source_relative = file_util.get_relative_path(source_dir, PROJECT_ROOT)
-    levels = source_relative.strip('./').split('/')
+def update_build_tree(source_dir: Path):
+    source_relative = source_dir.relative_to(PROJECT_ROOT)
+    levels = source_relative.parts
 
-    build_relative = ''
+    build_path = Path(BUILD_DIRECTORY)
     for level in levels:
-        build_relative += '/' + level
-
-        build_path = BUILD_DIRECTORY + build_relative
+        build_path /= level
         file_util.create_directory(build_path)
 
 
-def traverse(starting_path: str) -> tuple:
+def traverse(starting_path: Path) -> tuple:
     """
     Traverse project source tree.
     :param starting_path: path to start from.
@@ -337,7 +338,7 @@ def create_makefiles() -> None:
     except FileNotFoundError:
         return
 
-    out_bin = file_util.get_relative_path(BIN_DIRECTORY + '/' + TARGET, BUILD_DIRECTORY)
+    out_bin = os.path.relpath(BIN_DIRECTORY / TARGET, BUILD_DIRECTORY)
     libs = ' '.join(LIBS)
 
     makefile_content = 'CC :=' + CC + '\n' \
@@ -351,7 +352,7 @@ def create_makefiles() -> None:
 
     makefile_content += '\n\nall: $(OUT)\n\n'
 
-    includes = sorted(['-include ' + mk_file for mk_file in mk_files])
+    includes = sorted(['-include ' + mk_file.as_posix() for mk_file in mk_files])
     includes.extend(['-include $(CC_DEPS)'])
 
     makefile_content += '\n'.join(includes) + '\n\n'
@@ -371,7 +372,7 @@ def create_makefiles() -> None:
         makefile_content += target + ':\n'
         makefile_content += '\t' + command + '\n\n'
 
-    makefile_path = BUILD_DIRECTORY + '/Makefile'
+    makefile_path = BUILD_DIRECTORY / 'Makefile'
 
     with open(makefile_path, 'w') as makefile_pointer:
         makefile_pointer.write(makefile_content)

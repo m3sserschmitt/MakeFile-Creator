@@ -1,4 +1,3 @@
-import makefile_creator.file_util as file_util
 from makefile_creator.iset import Set
 
 import copy
@@ -23,8 +22,8 @@ DEFAULTS = {
     'VERBOSE': False,
     'RM': 'rm -v',
     'PROJECT_ROOT': os.getcwd(),
-    'BUILD_DIRECTORY': file_util.get_relative_path(os.getcwd() + '/build', os.getcwd()),
-    'BIN_DIRECTORY': file_util.get_relative_path(os.getcwd() + '/build', os.getcwd())
+    'BUILD_DIRECTORY': os.path.relpath(os.getcwd() + '/build', os.getcwd()),
+    'BIN_DIRECTORY': os.path.relpath(os.getcwd() + '/build', os.getcwd())
 }
 
 
