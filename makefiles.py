@@ -33,11 +33,14 @@ def set_libs(libs: list):
 
 def set_include_paths(include_paths: list):
     for path in include_paths:
-        abs_path = os.path.abspath(path)
+        abs_path = Path(path).resolve()
 
         INCLUDE_PATHS.append(abs_path)
+        try:
         C_FLAGS.append(
-            '-I' + Path(os.path.relpath(path, start=BUILD_DIRECTORY)).as_posix())
+                f'-I"{Path(os.path.relpath(abs_path, start=BUILD_DIRECTORY)).as_posix()}"')
+        except ValueError:
+            C_FLAGS.append(f'-I"{abs_path.as_posix()}"')
 
 
 def set_variables(config: dict) -> None:
@@ -262,8 +265,12 @@ def create_d_files(source_files: list) -> list:
         dependencies.sort()
 
         src_relative = Path(os.path.relpath(file, BUILD_DIRECTORY)).as_posix()
+        try:
         dependencies_list = ' \\\n'.join([src_relative] + [Path(os.path.relpath(
             dependency, BUILD_DIRECTORY)).as_posix() for dependency in dependencies])
+        except ValueError:
+            dependencies_list = ' \\\n'.join(
+                [src_relative] + [Path(dependency).as_posix() for dependency in dependencies])
 
         src_relative = file.relative_to(PROJECT_ROOT)
         object_relative = src_relative.with_suffix('.o').as_posix()
