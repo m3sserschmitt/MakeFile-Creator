@@ -95,6 +95,7 @@ def create_subdir_mk(source_files: list) -> str:
     if not source_files:
         return ''
 
+    object_files_list = ''
     objects_list = ''
     deps_list = ''
     src_relative = Path()
@@ -106,33 +107,33 @@ def create_subdir_mk(source_files: list) -> str:
     for source_file in source_files:
         src_relative = source_file.relative_to(PROJECT_ROOT)
         object_relative = src_relative.with_suffix('.o')
-        objects_list += str(object_relative) + ' \\\n'
+        object_files_list += f'"{str(object_relative)}"'.replace("\\", "\\\\") + ' \\\n'
+        objects_list += object_relative.as_posix().replace(" ", "\\ ") + ' \\\n'
 
         deps_dir = src_relative.parent / 'deps'
         dep = src_relative.with_suffix('.d').name
         deps_relative = deps_dir / dep
 
-        deps_list += str(deps_relative) + ' \\\n'
+        deps_list += f'"{str(deps_relative)}"'.replace("\\", "\\\\") + ' \\\n'
 
     src_dir_relative = Path(os.path.relpath(source_file, BUILD_DIRECTORY)).parent
     build_dir_relative = object_relative.parent
 
+    object_files_list = object_files_list.strip('\\\n')
     objects_list = objects_list.strip('\\\n')
     deps_list = deps_list.strip('\\\n')
 
     mk_file_content = 'OBJECTS += ' + objects_list + '\n\n'
+    mk_file_content += 'OBJECT_FILES += ' + object_files_list + '\n\n'
     mk_file_content += 'CC_DEPS += ' + deps_list + '\n\n'
 
     c_flags = ' '.join(C_FLAGS)
 
     for extension in EXTENSIONS:
-        if os.name == 'nt':
-            mk_file_content += str(build_dir_relative) + "\\\\%.o"
-        else:
-            mk_file_content += str(build_dir_relative / "%.o")
-        mk_file_content += ': ' + (src_dir_relative / f"%.{extension}").as_posix() + '\n'
+        mk_file_content += (build_dir_relative / '%.o').as_posix().replace(' ', '\\ ')
+        mk_file_content += ': ' + (src_dir_relative / f'%.{extension}').as_posix().replace(' ', '\\ ') + '\n'
         mk_file_content += '\t@echo \'Building file: $<\'\n'
-        mk_file_content += '\t$(CC) ' + c_flags + ' $< -o $@\n'
+        mk_file_content += '\t"$(CC)" ' + c_flags + ' "$<" -o "$@"\n'
         mk_file_content += '\t@echo \'Build finished: $<\'\n\n'
 
     mk_file_path = BUILD_DIRECTORY / src_relative.parent / 'subdir.mk'
@@ -345,21 +346,22 @@ def create_makefiles() -> None:
     except FileNotFoundError:
         return
 
-    out_bin = os.path.relpath(BIN_DIRECTORY / TARGET, BUILD_DIRECTORY)
+    out_bin = Path(os.path.relpath(BIN_DIRECTORY / TARGET, BUILD_DIRECTORY))
     libs = ' '.join(LIBS)
 
-    makefile_content = 'CC :=' + CC + '\n' \
-                       'LD :=' + LD + '\n' \
-                       'TARGET :=' + TARGET + '\n' \
-                       'OUT :=' + out_bin + '\n' \
-                       'LIBS :=' + libs + '\n' \
+    makefile_content = 'CC := ' + CC + '\n' \
+                       'LD := ' + LD + '\n' \
+                       'TARGET := ' + TARGET + '\n' \
+                       'OUT := ' + out_bin.as_posix().replace(' ', '\\ ') + '\n' \
+                       'LIBS := ' + libs + '\n' \
                        'CC_DEPS :=\n' \
                        'OBJECTS :=\n' \
+                       'OBJECT_FILES :=\n' \
                        'RM :=' + RM
 
     makefile_content += '\n\nall: $(OUT)\n\n'
 
-    includes = sorted(['-include ' + mk_file.as_posix() for mk_file in mk_files])
+    includes = sorted(['-include ' + mk_file.as_posix().replace(' ', '\\ ') for mk_file in mk_files])
     includes.extend(['-include $(CC_DEPS)'])
 
     makefile_content += '\n'.join(includes) + '\n\n'
@@ -369,11 +371,11 @@ def create_makefiles() -> None:
     makefile_content += '$(OUT): $(OBJECTS)\n'
     makefile_content += '\t@echo Building target: "$@".\n'
     makefile_content += '\t@echo Invoking $(LD) Linker ...\n'
-    makefile_content += '\t$(LD) $(OBJECTS) $(LIBS) ' + linkage_flags + ' -o $(OUT)\n'
+    makefile_content += '\t"$(LD)" $(OBJECT_FILES) $(LIBS) ' + linkage_flags + ' -o "' + str(out_bin) + '"\n'
     makefile_content += '\t@echo Target $(TARGET) build successfully.\n'
     makefile_content += '\t@echo Done.\n\n'
 
-    makefile_content += 'clean:\n\t$(RM) $(OBJECTS) ' + out_bin + '\n\n'
+    makefile_content += 'clean:\n\t$(RM) $(OBJECT_FILES) "' + str(out_bin) + '"\n\n'
 
     for target, command in CUSTOM_TARGETS.items():
         makefile_content += target + ':\n'
