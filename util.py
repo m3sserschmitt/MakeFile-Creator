@@ -10,7 +10,7 @@ def index(directory: str) -> list:
     """
 
     path = Path(directory)
-    return [str(p) for p in path.expanduser().iterdir()]
+    return [p for p in path.expanduser().iterdir()]
 
 
 def get_directories(files: list, ignore_paths: list) -> list:
@@ -21,7 +21,9 @@ def get_directories(files: list, ignore_paths: list) -> list:
     :return: set of all directories from given paths.
     """
 
-    return [file for file in files if os.path.isdir(file) and file not in ignore_paths]
+    files = [Path(paths) for paths in files]
+    ignore_paths = [Path(paths) for paths in ignore_paths]
+    return [file for file in files if file.is_dir() and file not in ignore_paths]
 
 
 def is_source_file(file_path: str, extensions: list) -> bool:
@@ -32,7 +34,8 @@ def is_source_file(file_path: str, extensions: list) -> bool:
     :return: true, if given path is source file, otherwise returns false.
     """
 
-    return os.path.isfile(file_path) and file_path.rsplit('.', maxsplit=1)[-1] in extensions
+    path = Path(file_path)
+    return path.is_file() and path.suffix[1:] in extensions and len(path.suffixes) == 1
 
 
 def is_d_file(file_path: str) -> bool:
@@ -42,7 +45,8 @@ def is_d_file(file_path: str) -> bool:
     :return: true, if given path is .d file, otherwise false.
     """
 
-    return os.path.isfile(file_path) and file_path.rsplit('.', maxsplit=1)[-1] == 'd'
+    path = Path(file_path)
+    return path.is_file() and path.suffix == '.d' and len(path.suffixes) == 1
 
 
 def get_d_files(files: list) -> list:
