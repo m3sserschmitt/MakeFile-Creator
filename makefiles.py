@@ -71,7 +71,7 @@ def set_variables(config: dict) -> None:
     set_libs(config['LIBS'])
     set_include_paths(config['INCLUDE_PATHS'])
 
-    IGNORE_PATHS.extend([os.path.abspath(p) for p in config['IGNORE_PATHS']])
+    IGNORE_PATHS.extend([Path(p).resolve() for p in config['IGNORE_PATHS']])
 
     EXTENSIONS = config['EXTENSIONS']
 
@@ -205,12 +205,12 @@ def index_dependencies(source_file: str, found: list) -> None:
     os.chdir(source_dir_name)
 
     for dependency in dependencies:
-        dep_abs_path = os.path.abspath(dependency)
+        dep_abs_path = Path(dependency).resolve()
 
-        if not os.path.isfile(dep_abs_path):
+        if not dep_abs_path.is_file():
             for include_path in INCLUDE_PATHS:
-                possible_path = include_path + '/' + dependency
-                if os.path.isfile(possible_path):
+                possible_path = include_path / dependency
+                if possible_path.is_file():
                     dep_abs_path = possible_path
                     break
             else:
