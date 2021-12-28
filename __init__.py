@@ -5,7 +5,7 @@ import makefile_creator.config as config
 import makefile_creator.makefiles as makefiles
 
 config.PACKAGE_NAME = 'makefile_creator'
-config.VERSION = 'v1.0.0'
+config.VERSION = 'v1.0.1-beta'
 
 makefiles.PROJECT_ROOT = config.DEFAULTS['PROJECT_ROOT']
 makefiles.BUILD_DIRECTORY = config.DEFAULTS['BUILD_DIRECTORY']
